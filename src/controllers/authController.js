@@ -9,18 +9,22 @@ const generateToken = (user) => {
 // gestion des inscriptions
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+      console.log('Données reçues pour inscription :', req.body);
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'Email déjà utilisé' });
+      const { name, email, password } = req.body;
 
-    const newUser = await User.create({ name, email, password });
-    res.status(201).json({ message: 'Utilisateur créé', token: generateToken(newUser) });
+      const existingUser = await User.findOne({ email });
+      if (existingUser) return res.status(400).json({ message: 'Email déjà utilisé' });
+
+      const newUser = await User.create({ name, email, password });
+      res.status(201).json({ message: 'Utilisateur créé', token: generateToken(newUser) });
+
   } catch (error) {
-    console.error('erreur : ', error);
-    res.status(500).json({ message: 'Erreur serveur', error });
+      console.error('Erreur lors de l’inscription backend :', error);
+      res.status(500).json({ message: 'Erreur serveur', error });
   }
 };
+
 
 // gerstion de la connexion
 exports.login = async (req, res) => {

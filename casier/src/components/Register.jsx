@@ -17,9 +17,11 @@ const Register = ({ onRegister }) => {
             onRegister();
             navigate('/profile');
         } catch (error) {
+            console.error('Erreur d’inscription côté front :', error.response?.data || error.message);
             alert('Échec de l’inscription');
         }
     };
+    
 
     return (
         <Container>
