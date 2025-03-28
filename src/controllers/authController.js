@@ -17,6 +17,7 @@ exports.register = async (req, res) => {
     const newUser = await User.create({ name, email, password });
     res.status(201).json({ message: 'Utilisateur créé', token: generateToken(newUser) });
   } catch (error) {
+    console.error('erreur : ', error);
     res.status(500).json({ message: 'Erreur serveur', error });
   }
 };
@@ -37,3 +38,13 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error });
   }
 };
+
+exports.getProfile = async (req, res) => {
+  res.json({
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role
+  });
+};
+
