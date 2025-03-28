@@ -13,6 +13,7 @@ const Login = ({ onLogin }) => {
             const { data } = await api.post('/auth/login', { email, password });
             setAuthToken(data.token);
             localStorage.setItem('token', data.token);
+            localStorage.setItem('role', data.user.role);
             onLogin();
             navigate('/profile');
         } catch (error) {

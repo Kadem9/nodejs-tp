@@ -7,6 +7,7 @@ import LockerList from './components/LockerList';
 import ReservationList from './components/ReservationList';
 import Navbar from './components/Navbar';
 import { setAuthToken } from './services/api';
+import LockerAdmin from './components/LockerAdmin';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -38,6 +39,11 @@ const App = () => {
                 <Route path="/lockers" element={isAuthenticated ? <LockerList /> : <Navigate to="/login" />} />
                 <Route path="/reservations" element={isAuthenticated ? <ReservationList /> : <Navigate to="/login" />} />
                 <Route path="*" element={<Navigate to={isAuthenticated ? "/profile" : "/login"} />} />
+                <Route path="/admin/lockers" element={isAuthenticated && localStorage.getItem('role') === 'admin'
+                        ? <LockerAdmin />
+                        : <Navigate to="/login" />
+                } />
+
             </Routes>
         </Router>
     );

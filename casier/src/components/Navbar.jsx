@@ -21,6 +21,10 @@ const Navbar = ({ onLogout }) => {
                     <Button color="inherit" onClick={() => navigate('/lockers')}>Casiers</Button>
                     <Button color="inherit" onClick={() => navigate('/reservations')}>Réservations</Button>
                     <Button color="inherit" onClick={() => navigate('/profile')}>Profil</Button>
+                    {localStorage.getItem('role') === 'admin' && (
+                    <Button color="inherit" onClick={() => navigate('/admin/lockers')}>Admin</Button>
+                    )}
+
                     <Button color="inherit" onClick={handleLogout}>Déconnexion</Button>
                 </Box>
             </Toolbar>
