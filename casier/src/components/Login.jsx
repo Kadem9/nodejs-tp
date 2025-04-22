@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Button, Container, Typography } from '@mui/material';
 import api, { setAuthToken } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const Login = ({ onLogin }) => {
     const [email, setEmail] = useState('');
@@ -14,10 +15,11 @@ const Login = ({ onLogin }) => {
             setAuthToken(data.token);
             localStorage.setItem('token', data.token);
             localStorage.setItem('role', data.user.role);
+            toast.success('Connexion réussie');
             onLogin();
             navigate('/profile');
         } catch (error) {
-            alert('Échec de la connexion');
+            toast.error('Identifiants incorrects');
         }
     };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, TextField, Button, Typography } from '@mui/material';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -9,9 +10,11 @@ const ForgotPassword = () => {
     const handleSubmit = async () => {
         try {
             await api.post('/auth/forgot-password', { email });
+            toast.success("E-mail de réinitialisation envoyé !");
+
             setSent(true);
         } catch (error) {
-            alert("Erreur lors de l'envoi");
+            toast.error("Une erreur est survenue. Vérifie l'email.");
         }
     };
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, TextField, Button, Grid, Card, CardContent, Box } from '@mui/material';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const LockerAdmin = () => {
     const [lockers, setLockers] = useState([]);
@@ -24,24 +25,37 @@ const LockerAdmin = () => {
             await api.post('/lockers', form);
             await fetchLockers();
             setForm({ number: '', size: '', price: '' });
+            toast.success('Casier créé avec succès');
         } catch (error) {
-            alert('Erreur création casier');
+            toast.error('Erreur lors de la création du casier');
         }
     };
+    
 
     const handleDelete = async (id) => {
         if (!window.confirm('Supprimer ce casier ?')) return;
-        await api.delete(`/lockers/${id}`);
-        await fetchLockers();
+        try {
+            await api.delete(`/lockers/${id}`);
+            await fetchLockers();
+            toast.success('Casier supprimé');
+        } catch (error) {
+            toast.error('Erreur lors de la suppression');
+        }
     };
+    
 
     const handleUpdate = async (id) => {
         const updated = prompt('Nouveau prix ?');
         if (updated) {
-            await api.put(`/lockers/${id}`, { price: updated });
-            await fetchLockers();
+            try {
+                await api.put(`/lockers/${id}`, { price: updated });
+                await fetchLockers();
+                toast.success('Prix mis à jour');
+            } catch (error) {
+                toast.error('Erreur lors de la mise à jour du prix');
+            }
         }
-    };
+    };    
 
     return (
         <Container sx={{ mt: 5 }}>

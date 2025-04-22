@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Card, CardContent, Button, Grid, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const LockerList = () => {
     const [lockers, setLockers] = useState([]);
@@ -25,9 +26,9 @@ const LockerList = () => {
         try {
             const duration = selectedDuration[lockerId] || 1; // par défaut : 1h
             await api.post('/reservations', { lockerId, duration });
-            alert('Casier réservé avec succès');
+            toast.success('Casier réservé avec succès');
         } catch (error) {
-            alert('Erreur lors de la réservation');
+            toast.error('Erreur lors de la réservation');
             console.error(error.response?.data || error.message);
         }
     };

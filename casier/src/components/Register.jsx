@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Button, Container, Typography } from '@mui/material';
 import api, { setAuthToken } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const Register = ({ onRegister }) => {
     const [name, setName] = useState('');
@@ -14,11 +15,13 @@ const Register = ({ onRegister }) => {
             const { data } = await api.post('/auth/register', { name, email, password });
             setAuthToken(data.token);
             localStorage.setItem('token', data.token);
+            toast.success("Inscription réussie !");
+            
             onRegister();
             navigate('/profile');
         } catch (error) {
             console.error('Erreur d’inscription côté front :', error.response?.data || error.message);
-            alert('Échec de l’inscription');
+            toast.error("Échec de l'inscription");
         }
     };
     

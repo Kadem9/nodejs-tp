@@ -12,19 +12,23 @@ const Navbar = ({ onLogout }) => {
     };
 
     return (
-        <AppBar position="static" sx={{ backgroundColor: '#1976d2' }}>
-            <Toolbar>
-                <Typography variant="h6" sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => navigate('/profile')}>
-                    CasierApp
+        <AppBar position="static" color="primary" elevation={1}>
+            <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <Typography
+                    variant="h6"
+                    onClick={() => navigate('/profile')}
+                    sx={{ cursor: 'pointer', fontWeight: 600 }}
+                >
+                    🧊 CasierApp
                 </Typography>
-                <Box>
+
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     <Button color="inherit" onClick={() => navigate('/lockers')}>Casiers</Button>
                     <Button color="inherit" onClick={() => navigate('/reservations')}>Réservations</Button>
                     <Button color="inherit" onClick={() => navigate('/profile')}>Profil</Button>
                     {localStorage.getItem('role') === 'admin' && (
-                    <Button color="inherit" onClick={() => navigate('/admin/lockers')}>Admin</Button>
+                        <Button color="inherit" onClick={() => navigate('/admin/lockers')}>Admin</Button>
                     )}
-
                     <Button color="inherit" onClick={handleLogout}>Déconnexion</Button>
                 </Box>
             </Toolbar>

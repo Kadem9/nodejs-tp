@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Card, CardContent, Grid } from '@mui/material';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const ReservationList = () => {
     const [reservations, setReservations] = useState([]);
@@ -11,6 +12,7 @@ const ReservationList = () => {
                 const { data } = await api.get('/reservations');
                 setReservations(data);
             } catch (error) {
+                toast.error('Impossible de charger les réservations');
                 console.error('Erreur lors du chargement des réservations', error);
             }
         };

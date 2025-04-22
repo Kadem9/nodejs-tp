@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Typography, TextField, Button } from '@mui/material';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const ResetPassword = () => {
     const { token } = useParams();
@@ -11,15 +12,15 @@ const ResetPassword = () => {
 
     const handleSubmit = async () => {
         if (password !== confirmPassword) {
-            return alert('Les mots de passe ne correspondent pas');
+            return toast.error('Les mots de passe ne correspondent pas');
         }
 
         try {
             await api.post('/auth/reset-password', { token, password });
-            alert('Mot de passe réinitialisé avec succès');
+            toast.success('Mot de passe réinitialisé avec succès');
             navigate('/login');
         } catch (error) {
-            alert('Erreur lors de la réinitialisation');
+            toast.error('Erreur lors de la réinitialisation');
             console.error(error.response?.data || error.message);
         }
     };
