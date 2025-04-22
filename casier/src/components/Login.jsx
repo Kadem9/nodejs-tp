@@ -43,6 +43,9 @@ const Login = ({ onLogin }) => {
             <Typography variant="body2" style={{ marginTop: '16px' }}>
                 Pas encore de compte ? <a href="/register" style={{ color: 'blue', cursor: 'pointer' }}>Créer un compte</a>
             </Typography>
+            <Typography variant="body2" style={{ marginTop: '8px' }}>
+                Mot de passe oublié ? <a href="/forgot-password" style={{ color: 'blue', cursor: 'pointer' }}>Réinitialiser</a>
+            </Typography>
         </Container>
     );
 };

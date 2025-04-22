@@ -8,6 +8,8 @@ import ReservationList from './components/ReservationList';
 import Navbar from './components/Navbar';
 import { setAuthToken } from './services/api';
 import LockerAdmin from './components/LockerAdmin';
+import ResetPassword from './components/ResetPassword';
+import ForgotPassword from './components/ForgotPassword';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -35,6 +37,8 @@ const App = () => {
             <Routes>
                 <Route path="/login" element={<Login onLogin={handleLoginOrRegister} />} />
                 <Route path="/register" element={<Register onRegister={handleLoginOrRegister} />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
                 <Route path="/lockers" element={isAuthenticated ? <LockerList /> : <Navigate to="/login" />} />
                 <Route path="/reservations" element={isAuthenticated ? <ReservationList /> : <Navigate to="/login" />} />
