@@ -28,10 +28,19 @@ exports.register = async (req, res) => {
       if (existingUser) return res.status(400).json({ message: 'Email déjà utilisé' });
 
       const newUser = await User.create({ name, email, password });
-      res.status(201).json({ message: 'Utilisateur créé', token: generateToken(newUser) });
+      res.status(201).json({ 
+          message: 'Utilisateur créé', 
+          token: generateToken(newUser),
+          user: {
+              id: newUser._id,
+              name: newUser.name,
+              email: newUser.email,
+              role: newUser.role
+          }
+      });
 
   } catch (error) {
-      console.error('Erreur lors de l’inscription backend :', error);
+      console.error('Erreur lors de l\'inscription backend :', error);
       res.status(500).json({ message: 'Erreur serveur', error });
   }
 };
@@ -68,12 +77,25 @@ exports.login = async (req, res) => {
 
 
 exports.getProfile = async (req, res) => {
-  res.json({
-      id: req.user.id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role
-  });
+  try {
+    console.log('getProfile appelé avec user:', req.user);
+    
+    const user = await User.findById(req.user.id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    res.json({
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+    });
+  } catch (error) {
+    console.error('Erreur getProfile:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
 };
 
 exports.forgotPassword = async (req, res) => {
