@@ -10,6 +10,9 @@ import LockerAdmin from './components/LockerAdmin';
 import ResetPassword from './components/ResetPassword';
 import ForgotPassword from './components/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
+import HomePage from './components/HomePage';
+import PaymentPage from './components/PaymentPage';
+import PaymentSuccess from './components/PaymentSuccess';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ThemeProvider, CssBaseline } from '@mui/material';
@@ -22,10 +25,11 @@ const AppContent = () => {
     return (
         <Router>
             <ToastContainer position="top-right" autoClose={3000} />
-            {isAuthenticated && <Navbar />}
+            <Navbar />
 
             <Routes>
-                {/* Routes publiques */}
+                <Route path="/" element={<HomePage />} />
+                
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
@@ -46,6 +50,16 @@ const AppContent = () => {
                         <ReservationList />
                     </ProtectedRoute>
                 } />
+                <Route path="/payment/success" element={
+                    <ProtectedRoute>
+                        <PaymentSuccess />
+                    </ProtectedRoute>
+                } />
+                <Route path="/payment/:reservationId" element={
+                    <ProtectedRoute>
+                        <PaymentPage />
+                    </ProtectedRoute>
+                } />
                 
                 <Route path="/admin/lockers" element={
                     <ProtectedRoute requireAdmin={true}>
@@ -53,9 +67,7 @@ const AppContent = () => {
                     </ProtectedRoute>
                 } />
                 
-                <Route path="*" element={
-                    <Navigate to={isAuthenticated ? "/profile" : "/login"} replace />
-                } />
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
     );

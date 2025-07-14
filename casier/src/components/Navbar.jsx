@@ -19,14 +19,16 @@ import {
     AdminPanelSettings as AdminIcon,
     Logout as LogoutIcon,
     Menu as MenuIcon,
-    Close as CloseIcon
+    Close as CloseIcon,
+    Home as HomeIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const { user, logout, isAdmin } = useAuth();
+    const location = useLocation();
+    const { user, logout, isAdmin, isAuthenticated } = useAuth();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
 
@@ -40,25 +42,38 @@ const Navbar = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
+        navigate('/');
     };
 
     const navItems = [
-        { label: 'Casiers', icon: <StorageIcon />, path: '/lockers' },
-        { label: 'Réservations', icon: <BookOnlineIcon />, path: '/reservations' },
-        { label: 'Profil', icon: <PersonIcon />, path: '/profile' },
+        { label: 'Accueil', icon: <HomeIcon />, path: '/', public: true },
     ];
 
-    if (isAdmin()) {
-        navItems.push({ label: 'Admin', icon: <AdminIcon />, path: '/admin/lockers' });
+    if (isAuthenticated) {
+        navItems.push(
+            { label: 'Casiers', icon: <StorageIcon />, path: '/lockers' },
+            { label: 'Réservations', icon: <BookOnlineIcon />, path: '/reservations' },
+            { label: 'Profil', icon: <PersonIcon />, path: '/profile' }
+        );
+
+        if (isAdmin()) {
+            navItems.push({ label: 'Admin', icon: <AdminIcon />, path: '/admin/lockers' });
+        }
     }
+
+    const isActiveRoute = (path) => {
+        if (path === '/') {
+            return location.pathname === '/';
+        }
+        return location.pathname.startsWith(path);
+    };
 
     return (
         <AppBar 
             position="static" 
             elevation={0}
             sx={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
             }}
         >
@@ -79,7 +94,7 @@ const Navbar = () => {
                             transform: 'scale(1.05)',
                         }
                     }}
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate('/')}
                 >
                     <Box
                         sx={{
@@ -100,14 +115,11 @@ const Navbar = () => {
                         variant="h6"
                         sx={{ 
                             fontWeight: 700,
-                            background: 'linear-gradient(45deg, #ffffff 30%, #f0f0f0 90%)',
-                            backgroundClip: 'text',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
+                            color: 'white',
                             display: { xs: 'none', sm: 'block' }
                         }}
                     >
-                        CasierApp
+                        LockerLyon
                     </Typography>
                 </Box>
 
@@ -123,8 +135,10 @@ const Navbar = () => {
                                 px: 2,
                                 py: 1,
                                 transition: 'all 0.3s ease',
+                                background: isActiveRoute(item.path) ? 'rgba(255,255,255,0.2)' : 'transparent',
+                                fontWeight: isActiveRoute(item.path) ? 'bold' : 'normal',
                                 '&:hover': {
-                                    background: 'rgba(255,255,255,0.1)',
+                                    background: 'rgba(255,255,255,0.15)',
                                     transform: 'translateY(-1px)',
                                 },
                             }}
@@ -135,34 +149,73 @@ const Navbar = () => {
                 </Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {isAdmin() && (
-                        <Chip
-                            label="Admin"
-                            size="small"
-                            icon={<AdminIcon />}
-                            sx={{
-                                background: 'rgba(255,255,255,0.2)',
-                                color: 'white',
-                                fontWeight: 600,
-                                display: { xs: 'none', sm: 'flex' }
-                            }}
-                        />
+                    {isAuthenticated ? (
+                        <>
+                            {isAdmin() && (
+                                <Chip
+                                    label="Admin"
+                                    size="small"
+                                    icon={<AdminIcon />}
+                                    sx={{
+                                        background: 'rgba(255,255,255,0.2)',
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        display: { xs: 'none', sm: 'flex' }
+                                    }}
+                                />
+                            )}
+                            
+                            <IconButton
+                                onClick={handleProfileMenuOpen}
+                                sx={{
+                                    background: 'rgba(255,255,255,0.1)',
+                                    color: 'white',
+                                    '&:hover': {
+                                        background: 'rgba(255,255,255,0.2)',
+                                    },
+                                }}
+                            >
+                                <Avatar sx={{ width: 32, height: 32, bgcolor: 'rgba(255,255,255,0.2)' }}>
+                                    <PersonIcon />
+                                </Avatar>
+                            </IconButton>
+                        </>
+                    ) : (
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Button
+                                color="inherit"
+                                onClick={() => navigate('/login')}
+                                sx={{
+                                    borderRadius: 2,
+                                    px: 2,
+                                    py: 1,
+                                    '&:hover': {
+                                        background: 'rgba(255,255,255,0.1)',
+                                    },
+                                }}
+                            >
+                                Connexion
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={() => navigate('/register')}
+                                sx={{
+                                    borderRadius: 2,
+                                    px: 2,
+                                    py: 1,
+                                    bgcolor: 'white',
+                                    color: 'primary.main',
+                                    fontWeight: 'bold',
+                                    '&:hover': {
+                                        bgcolor: 'grey.100',
+                                        transform: 'translateY(-1px)',
+                                    },
+                                }}
+                            >
+                                Inscription
+                            </Button>
+                        </Box>
                     )}
-                    
-                    <IconButton
-                        onClick={handleProfileMenuOpen}
-                        sx={{
-                            background: 'rgba(255,255,255,0.1)',
-                            color: 'white',
-                            '&:hover': {
-                                background: 'rgba(255,255,255,0.2)',
-                            },
-                        }}
-                    >
-                        <Avatar sx={{ width: 32, height: 32, bgcolor: 'rgba(255,255,255,0.2)' }}>
-                            <PersonIcon />
-                        </Avatar>
-                    </IconButton>
 
                     <IconButton
                         color="inherit"
@@ -200,6 +253,8 @@ const Navbar = () => {
                                     py: 1.5,
                                     mb: 1,
                                     borderRadius: 2,
+                                    background: isActiveRoute(item.path) ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                    fontWeight: isActiveRoute(item.path) ? 'bold' : 'normal',
                                     '&:hover': {
                                         background: 'rgba(255,255,255,0.1)',
                                     },
@@ -208,50 +263,57 @@ const Navbar = () => {
                                 {item.label}
                             </Button>
                         ))}
-                        <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.2)' }} />
-                        <Button
-                            fullWidth
-                            color="inherit"
-                            onClick={handleLogout}
-                            startIcon={<LogoutIcon />}
-                            sx={{
-                                justifyContent: 'flex-start',
-                                py: 1.5,
-                                borderRadius: 2,
-                                '&:hover': {
-                                    background: 'rgba(255,255,255,0.1)',
-                                },
-                            }}
-                        >
-                            Déconnexion
-                        </Button>
+                        
+                        {isAuthenticated && (
+                            <>
+                                <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.2)' }} />
+                                <Button
+                                    fullWidth
+                                    color="inherit"
+                                    onClick={handleLogout}
+                                    startIcon={<LogoutIcon />}
+                                    sx={{
+                                        justifyContent: 'flex-start',
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        '&:hover': {
+                                            background: 'rgba(255,255,255,0.1)',
+                                        },
+                                    }}
+                                >
+                                    Déconnexion
+                                </Button>
+                            </>
+                        )}
                     </Box>
                 </Box>
             )}
 
-            <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleProfileMenuClose}
-                PaperProps={{
-                    sx: {
-                        mt: 1,
-                        minWidth: 200,
-                        borderRadius: 2,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                    }
-                }}
-            >
-                <MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>
-                    <PersonIcon sx={{ mr: 2 }} />
-                    Mon Profil
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleLogout}>
-                    <LogoutIcon sx={{ mr: 2 }} />
-                    Déconnexion
-                </MenuItem>
-            </Menu>
+            {isAuthenticated && (
+                <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleProfileMenuClose}
+                    PaperProps={{
+                        sx: {
+                            mt: 1,
+                            minWidth: 200,
+                            borderRadius: 2,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                        }
+                    }}
+                >
+                    <MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>
+                        <PersonIcon sx={{ mr: 2 }} />
+                        Mon Profil
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem onClick={handleLogout}>
+                        <LogoutIcon sx={{ mr: 2 }} />
+                        Déconnexion
+                    </MenuItem>
+                </Menu>
+            )}
         </AppBar>
     );
 };

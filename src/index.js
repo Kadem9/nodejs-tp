@@ -1,27 +1,31 @@
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
-
 require('dotenv').config();
 
 const app = express();
 connectDB();
 
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+
+const { handleWebhook } = require('./controllers/paymentController');
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
 app.use(express.json());
 
-const authRoutes = require('./routes/authRoutes');
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/lockers', require('./routes/lockerRoutes'));
+app.use('/api/reservations', require('./routes/reservationRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
 
-const lockerRoutes = require('./routes/lockerRoutes');
-app.use('/api/lockers', lockerRoutes);
-
-const reservationRoutes = require('./routes/reservationRoutes');
-app.use('/api/reservations', reservationRoutes);
-
-const { checkReservations } = require('./services/reservationService');
+const { cleanupExpiredReservations } = require('./services/reservationService');
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
+app.listen(PORT, () => {});
 
-setInterval(checkReservations, 60 * 1000);
+setInterval(async () => {
+  try {
+    await cleanupExpiredReservations();
+  } catch (error) {
+  }
+}, 5 * 60 * 1000);

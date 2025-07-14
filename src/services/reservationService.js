@@ -22,39 +22,113 @@ const sendReminderEmail = async (reservation) => {
     await transporter.sendMail(mailOptions);
 };
 
-const checkReservations = async () => {
-    try {
-        const now = new Date();
-
-        // expiration
-        const expiredReservations = await Reservation.find({ endTime: { $lte: now } }).populate('locker');
-
-        for (const reservation of expiredReservations) {
-            const locker = reservation.locker;
-            locker.status = 'available';
-            await locker.save();
-
-            await Reservation.findByIdAndDelete(reservation._id);
-            console.log(`Casier ${locker.number} libéré`);
+exports.cleanupExpiredReservations = async () => {
+  try {
+    
+    const now = new Date();
+    
+    const expiredReservations = await Reservation.find({
+      status: 'active',
+      endTime: { $lte: now }
+    }).populate('locker');
+    
+    
+    for (const reservation of expiredReservations) {
+      reservation.status = 'completed';
+      await reservation.save();
+      
+      if (reservation.locker && reservation.locker.status === 'reserved') {
+        const locker = await Locker.findById(reservation.locker._id);
+        if (locker) {
+          locker.status = 'available';
+          await locker.save();
         }
-
-        // rappel 15 min avant expiration
-        const reminderTime = new Date(now.getTime() + (15 * 60 * 1000));
-        const upcomingReservations = await Reservation.find({
-            endTime: { $lte: reminderTime, $gt: now },
-            reminderSent: false
-        }).populate('user').populate('locker');
-
-        for (const reservation of upcomingReservations) {
-            await sendReminderEmail(reservation);
-            reservation.reminderSent = true;
-            await reservation.save();
-            console.log(`Rappel envoyé pour casier ${reservation.locker.number}`);
-        }
-
-    } catch (error) {
-        console.error('Erreur lors de la vérification des réservations:', error);
+      }
     }
+    
+    return expiredReservations.length;
+  } catch (error) {
+    throw error;
+  }
 };
 
-module.exports = { checkReservations };
+exports.checkExpiringReservations = async () => {
+  try {
+    const now = new Date();
+    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+    
+    const expiringReservations = await Reservation.find({
+      status: 'active',
+      endTime: { $gt: now, $lte: oneHourFromNow }
+    }).populate('user', 'email name').populate('locker', 'number address');
+    
+    return expiringReservations;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.getReservationStats = async () => {
+  try {
+    const now = new Date();
+    
+    const stats = await Reservation.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalRevenue: { $sum: '$totalPrice' }
+        }
+      }
+    ]);
+    
+    const activeReservations = await Reservation.countDocuments({
+      status: 'active',
+      endTime: { $gt: now }
+    });
+    
+    const expiredReservations = await Reservation.countDocuments({
+      status: 'active',
+      endTime: { $lte: now }
+    });
+    
+    return {
+      byStatus: stats,
+      active: activeReservations,
+      expired: expiredReservations
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.validateReservation = async (userId, lockerId, duration) => {
+  try {
+    const existingReservation = await Reservation.findOne({
+      user: userId,
+      status: { $in: ['active', 'pending'] },
+      endTime: { $gt: new Date() }
+    });
+    
+    if (existingReservation) {
+      throw new Error('Vous avez déjà une réservation active');
+    }
+    
+    const locker = await Locker.findById(lockerId);
+    if (!locker) {
+      throw new Error('Casier non trouvé');
+    }
+    
+    if (locker.status !== 'available') {
+      throw new Error('Casier non disponible');
+    }
+    
+    if (duration < 1 || duration > 168) {
+      throw new Error('Durée invalide (1h à 7 jours)');
+    }
+    
+    return { valid: true, locker };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+};

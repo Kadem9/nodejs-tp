@@ -1,15 +1,17 @@
 const express = require('express');
-const { addLocker, getAllLockers, updateLocker, deleteLocker } = require('../controllers/lockerController');
+const router = express.Router();
+const lockerController = require('../controllers/lockerController');
 const authMiddleware = require('../middleware/authMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
 
-const router = express.Router();
+router.get('/', lockerController.getAllLockers);
+router.get('/nearby', lockerController.getNearbyLockers);
+router.get('/neighborhoods', lockerController.getNeighborhoods);
+router.get('/stats', lockerController.getLockerStats);
+router.get('/:id', lockerController.getLockerById);
 
-router.post('/', authMiddleware, adminMiddleware, addLocker); // ajout d'un casier
-router.get('/', authMiddleware, getAllLockers);  // recup tt les caisers
-router.put('/:id', authMiddleware, adminMiddleware, updateLocker); // modifier un caiser
-router.delete('/:id', authMiddleware, adminMiddleware, deleteLocker); // supprimer un casier
+router.post('/', authMiddleware, adminMiddleware, lockerController.createLocker);
+router.put('/:id', authMiddleware, adminMiddleware, lockerController.updateLocker);
+router.delete('/:id', authMiddleware, adminMiddleware, lockerController.deleteLocker);
 
 module.exports = router;
-
-// TODO : Tester les routes admins et les ajouter dans les autres routes également.
