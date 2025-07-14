@@ -190,7 +190,7 @@ const LockerAdmin = () => {
             toast.error('Erreur lors de la création du casier');
         }
     };
-
+    
     const handleEdit = (locker) => {
         setEditingLocker(locker);
         setEditForm({
@@ -229,7 +229,7 @@ const LockerAdmin = () => {
             toast.error('Erreur lors de la suppression');
         }
     };
-
+    
     const getStatusColor = (status) => {
         switch (status) {
             case 'available': return 'success';
@@ -325,7 +325,7 @@ const LockerAdmin = () => {
                                 Nouveau casier
                             </Button>
                         </Box>
-                    </Box>
+            </Box>
 
                     <Paper sx={{ p: 3, mb: 4, background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -385,7 +385,7 @@ const LockerAdmin = () => {
 
                     <Grid container spacing={3}>
                         {filteredLockers.map(locker => (
-                            <Grid item xs={12} sm={6} md={4} key={locker._id}>
+                    <Grid item xs={12} sm={6} md={4} key={locker._id}>
                                 <Zoom in timeout={300}>
                                     <Card sx={{ 
                                         height: '100%',
@@ -395,7 +395,7 @@ const LockerAdmin = () => {
                                             boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
                                         }
                                     }}>
-                                        <CardContent>
+                            <CardContent>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                                                 <Box>
                                                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -460,14 +460,14 @@ const LockerAdmin = () => {
                                                     <Typography variant="caption" color="text.secondary">
                                                         {locker.stats.totalReservations || 0} réservations
                                                     </Typography>
-                                                </Box>
+                                </Box>
                                             )}
-                                        </CardContent>
-                                    </Card>
+                            </CardContent>
+                        </Card>
                                 </Zoom>
-                            </Grid>
-                        ))}
                     </Grid>
+                ))}
+            </Grid>
 
                     {filteredLockers.length === 0 && !loading && (
                         <Box sx={{ textAlign: 'center', py: 8 }}>
