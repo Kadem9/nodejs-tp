@@ -45,6 +45,13 @@ import {
 } from '@mui/icons-material';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import {
+    getStatusColor,
+    getStatusText,
+    getSizeText,
+    getPartnerTypeText,
+    applyLockerFilters
+} from '../utils/lockerHelpers.jsx';
 
 const LockerAdmin = () => {
     const [lockers, setLockers] = useState([]);
@@ -106,28 +113,13 @@ const LockerAdmin = () => {
     };
 
     const applyFilters = () => {
-        let filtered = [...lockers];
-
-        if (searchTerm) {
-            filtered = filtered.filter(locker => 
-                locker.number.toString().toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        if (cityFilter) {
-            filtered = filtered.filter(locker => 
-                locker.address?.city === cityFilter
-            );
-        }
-
-        if (statusFilter) {
-            filtered = filtered.filter(locker => locker.status === statusFilter);
-        }
-
-        filtered = filtered.filter(locker =>
-            locker.price >= priceFilter[0] && locker.price <= priceFilter[1]
-        );
-
+        const filters = {
+            searchTerm,
+            cityFilter,
+            statusFilter,
+            priceFilter
+        };
+        const filtered = applyLockerFilters(lockers, filters);
         setFilteredLockers(filtered);
     };
 
@@ -227,52 +219,15 @@ const LockerAdmin = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce casier ?')) return;
-        try {
-            await api.delete(`/lockers/${id}`);
-            await fetchLockers();
-            toast.success('Casier supprimé avec succès');
-        } catch (error) {
-            console.error('Erreur lors de la suppression:', error);
-            toast.error('Erreur lors de la suppression');
-        }
-    };
-    
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'available': return 'success';
-            case 'reserved': return 'warning';
-            case 'occupied': return 'error';
-            case 'maintenance': return 'info';
-            default: return 'default';
-        }
-    };
-
-    const getStatusText = (status) => {
-        switch (status) {
-            case 'available': return 'Disponible';
-            case 'reserved': return 'Réservé';
-            case 'occupied': return 'Occupé';
-            case 'maintenance': return 'Maintenance';
-            default: return status;
-        }
-    };
-
-    const getSizeText = (size) => {
-        switch (size) {
-            case 'small': return 'Petit';
-            case 'medium': return 'Moyen';
-            case 'large': return 'Grand';
-            default: return size;
-        }
-    };
-
-    const getPartnerTypeText = (type) => {
-        switch (type) {
-            case 'commerce': return 'Commerce';
-            case 'bureau': return 'Bureau';
-            case 'residence': return 'Résidence';
-            default: return type;
+        if (window.confirm('Êtes-vous sûr de vouloir supprimer casier ?')) {
+            try {
+                await api.delete(`/lockers/${id}`);
+                toast.success('Casier supprimé avec succès !');
+                fetchLockers();
+            } catch (error) {
+                console.error('Erreur lors de la suppression:', error);
+                toast.error('Erreur lors de la suppression');
+            }
         }
     };
 

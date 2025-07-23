@@ -27,8 +27,6 @@ import {
     Storage as StorageIcon,
     AccessTime as AccessTimeIcon,
     Euro as EuroIcon,
-    CheckCircle as CheckCircleIcon,
-    Cancel as CancelIcon,
     BookOnline as BookOnlineIcon,
     Refresh as RefreshIcon,
     Search as SearchIcon,
@@ -38,6 +36,14 @@ import {
 } from '@mui/icons-material';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import {
+    getStatusColor,
+    getStatusIcon,
+    getLockerIcon,
+    getSizeText,
+    getAvailableCount,
+    applyLockerFilters
+} from '../utils/lockerHelpers.jsx';
 
 const LockerList = () => {
     const [lockers, setLockers] = useState([]);
@@ -74,28 +80,13 @@ const LockerList = () => {
     };
 
     const applyFilters = () => {
-        let filtered = [...lockers];
-
-        if (searchTerm) {
-            filtered = filtered.filter(locker => 
-                locker.number.toString().toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        if (sizeFilter) {
-            filtered = filtered.filter(locker => locker.size === sizeFilter);
-        }
-
-        if (cityFilter) {
-            filtered = filtered.filter(locker => 
-                locker.address?.city === cityFilter
-            );
-        }
-
-        filtered = filtered.filter(locker =>
-            locker.price >= priceFilter[0] && locker.price <= priceFilter[1]
-        );
-
+        const filters = {
+            searchTerm,
+            sizeFilter,
+            cityFilter,
+            priceFilter
+        };
+        const filtered = applyLockerFilters(lockers, filters);
         setFilteredLockers(filtered);
     };
 
@@ -127,30 +118,8 @@ const LockerList = () => {
         }
     };
 
-    const getStatusColor = (status) => {
-        return status === 'reserved' ? 'error' : 'success';
-    };
-
-    const getStatusIcon = (status) => {
-        return status === 'reserved' ? <CancelIcon /> : <CheckCircleIcon />;
-    };
-
-    const getLockerIcon = (size) => {
-        const iconSize = size === 'large' ? 40 : size === 'medium' ? 32 : 24;
-        return <StorageIcon sx={{ fontSize: iconSize }} />;
-    };
-
-    const getSizeText = (size) => {
-        switch (size) {
-            case 'small': return 'Petit';
-            case 'medium': return 'Moyen';
-            case 'large': return 'Grand';
-            default: return size;
-        }
-    };
-
-    const getAvailableCount = () => {
-        return filteredLockers.filter(locker => locker.status === 'available').length;
+    const getAvailableCountLocal = () => {
+        return getAvailableCount(filteredLockers);
     };
 
     const handleResetFilters = () => {
@@ -187,7 +156,7 @@ const LockerList = () => {
                                 Liste des casiers
                             </Typography>
                             <Typography variant="body1" color="text.secondary">
-                                {getAvailableCount()} casiers disponibles sur {filteredLockers.length} au total
+                                {getAvailableCountLocal()} casiers disponibles sur {filteredLockers.length} au total
                             </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', gap: 1 }}>
