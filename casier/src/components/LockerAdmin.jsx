@@ -38,7 +38,8 @@ import {
     Euro as EuroIcon,
     FilterList as FilterIcon,
     Search as SearchIcon,
-    Close as CloseIcon
+    Close as CloseIcon,
+    FileDownload as FileDownloadIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -268,6 +269,39 @@ const LockerAdmin = () => {
         }
     };
 
+    const handleExportCSV = async () => {
+        try {
+            const response = await api.get('/export/reservations', {
+                responseType: 'blob'
+            });
+
+            // lien de téléchargement
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // nom du fichier dans les headers
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = 'reservations.csv';
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+            
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            toast.success('Export CSV téléchargé avec succès !');
+        } catch (error) {
+            toast.error('Erreur lors de l\'export CSV');
+        }
+    };
+
     if (loading) {
         return (
             <Container sx={{ mt: 5 }}>
@@ -311,6 +345,20 @@ const LockerAdmin = () => {
                             >
                                 <RefreshIcon />
                             </IconButton>
+                            <Button
+                                variant="outlined"
+                                startIcon={<FileDownloadIcon />}
+                                onClick={handleExportCSV}
+                                sx={{
+                                    borderColor: '#059669',
+                                    color: '#059669',
+                                    '&:hover': {
+                                        borderColor: '#047857',
+                                        backgroundColor: 'rgba(5, 150, 105, 0.04)',
+                                    },
+                                }}>
+                                Export CSV
+                            </Button>
                             <Button
                                 variant="contained"
                                 startIcon={<AddIcon />}

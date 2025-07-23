@@ -34,10 +34,12 @@ Application pour la gestion et réservation de casiers avec système de paiement
 
 ### Administration
 - Interface admin pour gestion des casiers
-- Crud pr les casiers (création, modif, suppression)
-- Filtres et recherche
+- CRUD pour les casiers (création, modification, suppression)
+- Filtres et recherche avancés
 - Gestion des réservations
 - Statistiques en temps réel
+- Export CSV des réservations avec filtres
+- Export des stats de performance
 
 ## Installation
 
@@ -106,12 +108,14 @@ src/
 ├── services/
 │   ├── reservationService.js    # Services de réservation
 │   ├── stripeService.js         # Services Stripe
-│   └── emailService.js          # Service de notifications par email
+│   ├── emailService.js          # Service de notifications par email
+│   └── exportService.js         # Service d'export CSV
 ├── scripts/
 │   ├── seedLockers.js           # Script de génération de casiers
 │   ├── testEmail.js             # Script de test email
 │   ├── testEmailService.js      # Script de test du service email
-│   └── sendReminders.js         # Script d'envoi des rappels
+│   ├── sendReminders.js         # Script d'envoi des rappels
+│   └── testExport.js            # Script de test export CSV
 └── index.js                     # Point d'entrée du serveur
 ```
 

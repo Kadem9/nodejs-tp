@@ -17,6 +17,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/lockers', require('./routes/lockerRoutes'));
 app.use('/api/reservations', require('./routes/reservationRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
+app.use('/api/export', require('./routes/exportRoutes'));
 
 const { cleanupExpiredReservations } = require('./services/reservationService');
 
