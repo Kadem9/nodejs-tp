@@ -8,6 +8,8 @@ const {
 } = require('../services/stripeService');
 const Reservation = require('../models/Reservation');
 const Locker = require('../models/Locker');
+const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 exports.createPayment = async (req, res) => {
   try {
@@ -264,7 +266,7 @@ exports.handleWebhook = async (req, res) => {
       
       const reservation = await Reservation.findOne({
         checkoutSessionId: session.id 
-      }).populate('locker');
+      }).populate('locker').populate('user');
 
       if (reservation) {
         reservation.paymentStatus = 'paid';
@@ -277,6 +279,11 @@ exports.handleWebhook = async (req, res) => {
           locker.status = 'reserved';
           await locker.save();
         }
+
+        try {
+          await emailService.sendPaymentConfirmed(reservation.user, reservation, locker);
+        } catch (emailError) {
+        }
       }
       break;
 
@@ -285,11 +292,17 @@ exports.handleWebhook = async (req, res) => {
       
       const expiredReservation = await Reservation.findOne({
         checkoutSessionId: expiredSession.id 
-      });
+      }).populate('user').populate('locker');
       
       if (expiredReservation && expiredReservation.paymentStatus === 'pending') {
         expiredReservation.status = 'cancelled';
         await expiredReservation.save();
+
+        try {
+          await emailService.sendPaymentFailed(expiredReservation.user, expiredReservation, expiredReservation.locker);
+        } catch (emailError) {
+          console.error('envoi email paiement échoué:', emailError);
+        }
       }
       break;
 

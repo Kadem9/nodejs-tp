@@ -23,6 +23,15 @@ Application pour la gestion et réservation de casiers avec système de paiement
 - Mode test et production
 - Page de confirmation de paiement
 
+### Notifications par Email
+- Emails automatiques
+- Notifications de réservation créée (paiement en attente)
+- Confirmation de paiement
+- Rappels d'expiration (15 min avant)
+- Notifications de fin de réservation
+- Emails d'échec de paiement
+- Réinitialisation de mot de passe
+
 ### Administration
 - Interface admin pour gestion des casiers
 - Crud pr les casiers (création, modif, suppression)
@@ -51,6 +60,8 @@ npm install
 # JWT_SECRET=votre_secret_jwt
 # STRIPE_SECRET_KEY=votre_cle_stripe
 # STRIPE_WEBHOOK_SECRET=votre_webhook_secret
+# MAILTRAP_USER=votre_user_mailtrap
+# MAILTRAP_PASS=votre_pass_mailtrap
 
 # Lancement du serveur
 npx nodemon src/index.js
@@ -94,10 +105,13 @@ src/
 │   └── paymentRoutes.js         # Routes des paiements
 ├── services/
 │   ├── reservationService.js    # Services de réservation
-│   └── stripeService.js         # Services Stripe
+│   ├── stripeService.js         # Services Stripe
+│   └── emailService.js          # Service de notifications par email
 ├── scripts/
 │   ├── seedLockers.js           # Script de génération de casiers
-│   └── testEmail.js             # Script de test email
+│   ├── testEmail.js             # Script de test email
+│   ├── testEmailService.js      # Script de test du service email
+│   └── sendReminders.js         # Script d'envoi des rappels
 └── index.js                     # Point d'entrée du serveur
 ```
 

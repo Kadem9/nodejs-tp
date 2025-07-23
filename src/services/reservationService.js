@@ -1,26 +1,6 @@
 const Reservation = require('../models/Reservation');
 const Locker = require('../models/Locker');
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-    host: 'sandbox.smtp.mailtrap.io',
-    port: 2525,
-    auth: {
-        user: process.env.MAILTRAP_USER,
-        pass: process.env.MAILTRAP_PASS
-    }
-});
-
-const sendReminderEmail = async (reservation) => {
-    const mailOptions = {
-        from: 'noreply@reservation-casiers.com',
-        to: reservation.user.email,
-        subject: 'Rappel : Votre réservation de casier expire bientôt',
-        text: `Bonjour ${reservation.user.name},\n\nVotre réservation du casier n°${reservation.locker.number} expire dans 15 minutes.\n\nMerci !`
-    };
-
-    await transporter.sendMail(mailOptions);
-};
+const emailService = require('./emailService');
 
 exports.cleanupExpiredReservations = async () => {
   try {
@@ -63,6 +43,38 @@ exports.checkExpiringReservations = async () => {
     }).populate('user', 'email name').populate('locker', 'number address');
     
     return expiringReservations;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.sendExpirationReminders = async () => {
+  try {
+    const now = new Date();
+    const fifteenMinutesFromNow = new Date(now.getTime() + 15 * 60 * 1000);
+    
+    const expiringReservations = await Reservation.find({
+      status: 'active',
+      endTime: { $gt: now, $lte: fifteenMinutesFromNow },
+      reminderSent: { $ne: true }
+    }).populate('user', 'email name').populate('locker', 'number address');
+    
+    const sentReminders = [];
+    
+    for (const reservation of expiringReservations) {
+      try {
+        await emailService.sendExpirationReminder(reservation.user, reservation, reservation.locker);
+        
+        reservation.reminderSent = true;
+        await reservation.save();
+        
+        sentReminders.push(reservation._id);
+      } catch (emailError) {
+        console.error(`Erreur envoi rappel expiration pour réservation ${reservation._id}:`, emailError);
+      }
+    }
+    
+    return sentReminders;
   } catch (error) {
     throw error;
   }

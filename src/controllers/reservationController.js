@@ -1,6 +1,8 @@
 const Reservation = require('../models/Reservation');
 const Locker = require('../models/Locker');
+const User = require('../models/User');
 const { validateReservation } = require('../services/reservationService');
+const emailService = require('../services/emailService');
 
 exports.bookLocker = async (req, res) => {
     try {
@@ -32,6 +34,13 @@ exports.bookLocker = async (req, res) => {
         status: 'pending',
         paymentStatus: 'pending'
       });
+
+      try {
+        const user = await User.findById(userId);
+        await emailService.sendReservationCreated(user, reservation, locker);
+      } catch (emailError) {
+        console.error('Erreur envoi email réservation créée:', emailError);
+      }
   
       res.status(201).json({ 
         message: 'Réservation créée, paiement requis pour confirmer', 
