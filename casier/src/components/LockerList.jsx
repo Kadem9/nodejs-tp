@@ -6,10 +6,6 @@ import {
     CardContent, 
     Button, 
     Grid, 
-    MenuItem, 
-    Select, 
-    FormControl, 
-    InputLabel,
     Box,
     Chip,
     IconButton,
@@ -17,11 +13,10 @@ import {
     Zoom,
     Skeleton,
     Alert,
-    TextField,
-    InputAdornment,
-    Paper,
-    Divider,
-    Slider
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import { 
     Storage as StorageIcon,
@@ -29,10 +24,8 @@ import {
     Euro as EuroIcon,
     BookOnline as BookOnlineIcon,
     Refresh as RefreshIcon,
-    Search as SearchIcon,
-    LocationOn as LocationIcon,
-    FilterList as FilterIcon,
-    Clear as ClearIcon
+    Clear as ClearIcon,
+    LocationOn as LocationIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -41,28 +34,33 @@ import {
     getStatusIcon,
     getLockerIcon,
     getSizeText,
-    getAvailableCount,
-    applyLockerFilters
+    getAvailableCount
 } from '../utils/lockerHelpers.jsx';
+import { useLockerFilters } from '../hooks/useLockerFilters.js';
+import LockerFilters from './LockerFilters.jsx';
 
 const LockerList = () => {
     const [lockers, setLockers] = useState([]);
-    const [filteredLockers, setFilteredLockers] = useState([]);
     const [selectedDuration, setSelectedDuration] = useState({});
     const [loading, setLoading] = useState(true);
     const [reserving, setReserving] = useState({});
-    const [searchTerm, setSearchTerm] = useState('');
-    const [sizeFilter, setSizeFilter] = useState('');
-    const [cityFilter, setCityFilter] = useState('');
-    const [priceFilter, setPriceFilter] = useState([0, 50]); // [min, max]
+
+    const {
+        searchTerm,
+        setSearchTerm,
+        sizeFilter,
+        setSizeFilter,
+        cityFilter,
+        setCityFilter,
+        priceFilter,
+        setPriceFilter,
+        filteredLockers,
+        resetFilters
+    } = useLockerFilters(lockers);
 
     useEffect(() => {
         fetchLockers();
     }, []);
-
-    useEffect(() => {
-        applyFilters();
-    }, [lockers, searchTerm, sizeFilter, cityFilter, priceFilter]);
 
     const fetchLockers = async () => {
         try {
@@ -70,24 +68,12 @@ const LockerList = () => {
             const response = await api.get('/lockers');
             const lockersData = response.data.data || response.data || [];
             setLockers(lockersData);
-            setFilteredLockers(lockersData);
         } catch (error) {
             console.error('Erreur lors du chargement des casiers:', error);
             toast.error('Erreur lors du chargement des casiers');
         } finally {
             setLoading(false);
         }
-    };
-
-    const applyFilters = () => {
-        const filters = {
-            searchTerm,
-            sizeFilter,
-            cityFilter,
-            priceFilter
-        };
-        const filtered = applyLockerFilters(lockers, filters);
-        setFilteredLockers(filtered);
     };
 
     const handleDurationChange = (lockerId, value) => {
@@ -98,21 +84,23 @@ const LockerList = () => {
     };
 
     const handleReservation = async (lockerId) => {
-        const duration = selectedDuration[lockerId] || 24;
+        const duration = selectedDuration[lockerId];
         if (!duration) {
             toast.error('Veuillez sélectionner une durée');
             return;
         }
 
-        setReserving(prev => ({ ...prev, [lockerId]: true }));
         try {
-            const response = await api.post('/reservations', { lockerId, duration });
-            toast.success(response.data.message || 'Casier réservé avec succès ! 🎉');
+            setReserving(prev => ({ ...prev, [lockerId]: true }));
+            const response = await api.post('/reservations', {
+                lockerId,
+                duration
+            });
+            toast.success('Réservation créée avec succès !');
             fetchLockers();
         } catch (error) {
             console.error('Erreur lors de la réservation:', error);
-            const errorMessage = error.response?.data?.message || 'Erreur lors de la réservation';
-            toast.error(errorMessage);
+            toast.error('Erreur lors de la réservation');
         } finally {
             setReserving(prev => ({ ...prev, [lockerId]: false }));
         }
@@ -123,10 +111,7 @@ const LockerList = () => {
     };
 
     const handleResetFilters = () => {
-        setSearchTerm('');
-        setSizeFilter('');
-        setCityFilter('');
-        setPriceFilter([0, 50]);
+        resetFilters();
         toast.success('Filtres réinitialisés !');
     };
 
@@ -191,91 +176,36 @@ const LockerList = () => {
                     </Box>
 
                     {/* Filtres */}
-                    <Paper sx={{ p: 3, mb: 4, background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <FilterIcon sx={{ mr: 1, color: 'primary.main' }} />
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                Filtres
-                            </Typography>
-                        </Box>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={3}>
-                                <TextField
-                                    fullWidth
-                                    placeholder="Rechercher par numéro..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={3}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Taille</InputLabel>
-                                    <Select
-                                        value={sizeFilter}
-                                        label="Taille"
-                                        onChange={(e) => setSizeFilter(e.target.value)}
-                                    >
-                                        <MenuItem value="">Toutes les tailles</MenuItem>
-                                        <MenuItem value="small">Petit</MenuItem>
-                                        <MenuItem value="medium">Moyen</MenuItem>
-                                        <MenuItem value="large">Grand</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={3}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Ville</InputLabel>
-                                    <Select
-                                        value={cityFilter}
-                                        label="Ville"
-                                        onChange={(e) => setCityFilter(e.target.value)}
-                                    >
-                                        <MenuItem value="">Toutes les villes</MenuItem>
-                                        <MenuItem value="Lyon">Lyon</MenuItem>
-                                        <MenuItem value="Villeurbanne">Villeurbanne</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={3}>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                                        Prix : {priceFilter[0]}€ - {priceFilter[1]}€
-                                    </Typography>
-                                    <Slider
-                                        value={priceFilter}
-                                        onChange={(event, newValue) => setPriceFilter(newValue)}
-                                        valueLabelDisplay="auto"
-                                        min={0}
-                                        max={50}
-                                        step={1}
-                                        marks={[
-                                            { value: 0, label: '0€' },
-                                            { value: 25, label: '25€' },
-                                            { value: 50, label: '50€' }
-                                        ]}
-                                        sx={{
-                                            '& .MuiSlider-thumb': {
-                                                backgroundColor: '#6366f1',
-                                            },
-                                            '& .MuiSlider-track': {
-                                                backgroundColor: '#6366f1',
-                                            },
-                                            '& .MuiSlider-rail': {
-                                                backgroundColor: '#e5e7eb',
-                                            },
-                                        }}
-                                    />
-                                </Box>
-                            </Grid>
-                        </Grid>
-                    </Paper>
+                    <LockerFilters
+                        filters={{
+                            searchTerm,
+                            sizeFilter,
+                            cityFilter,
+                            priceFilter
+                        }}
+                        onFilterChange={(field, value) => {
+                            switch (field) {
+                                case 'searchTerm':
+                                    setSearchTerm(value);
+                                    break;
+                                case 'sizeFilter':
+                                    setSizeFilter(value);
+                                    break;
+                                case 'cityFilter':
+                                    setCityFilter(value);
+                                    break;
+                                case 'priceFilter':
+                                    setPriceFilter(value);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }}
+                        filterOptions={{
+                            cities: ['Lyon', 'Villeurbanne'],
+                            sizes: ['small', 'medium', 'large']
+                        }}
+                    />
 
                     {filteredLockers.length === 0 && (
                         <Alert severity="info" sx={{ mb: 3 }}>
@@ -318,54 +248,27 @@ const LockerList = () => {
                                         >
                                             <Chip
                                                 icon={getStatusIcon(locker.status)}
-                                                label={locker.status === 'reserved' ? 'Réservé' : 'Disponible'}
+                                                label={locker.status === 'available' ? 'Disponible' : 'Réservé'}
                                                 color={getStatusColor(locker.status)}
-                                                size="small"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                                }}
+                                                sx={{ fontWeight: 600 }}
                                             />
                                         </Box>
 
-                                        <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                                            <Box sx={{ textAlign: 'center', mb: 2 }}>
-                                                <Box
-                                                    sx={{
-                                                        width: 80,
-                                                        height: 80,
-                                                        borderRadius: '50%',
-                                                        background: locker.status === 'reserved'
-                                                            ? 'linear-gradient(135deg, #fecaca 0%, #fca5a5 100%)'
-                                                            : 'linear-gradient(135deg, #bbf7d0 0%, #86efac 100%)',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        mx: 'auto',
-                                                        mb: 2,
-                                                    }}
-                                                >
-                                                    {getLockerIcon(locker.size)}
-                                                </Box>
+                                        <CardContent sx={{ flexGrow: 1, pt: 4 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                                {getLockerIcon(locker.size)}
+                                                <Typography variant="h5" sx={{ ml: 1, fontWeight: 700 }}>
+                                                    Casier #{locker.number}
+                                                </Typography>
                                             </Box>
 
-                                            <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 700, textAlign: 'center' }}>
-                                                Casier #{locker.number}
-                                            </Typography>
-
-                                            <Box sx={{ mb: 3 }}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                                    <StorageIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                                    <Typography variant="body1">
-                                                        Taille : <strong>{getSizeText(locker.size)}</strong>
-                                                    </Typography>
-                                                </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                                    <EuroIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                                    <Typography variant="body1">
-                                                        Prix : <strong>{locker.price}€/jour</strong>
-                                                    </Typography>
-                                                </Box>
+                                            <Box sx={{ mb: 2 }}>
+                                                <Typography variant="body2" color="text.secondary" gutterBottom>
+                                                    Taille : <strong>{getSizeText(locker.size)}</strong>
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary" gutterBottom>
+                                                    Prix : <strong>{locker.price}€/jour</strong>
+                                                </Typography>
                                                 {locker.address && (
                                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                                                         <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
@@ -379,55 +282,35 @@ const LockerList = () => {
                                             {locker.status === 'available' && (
                                                 <Box>
                                                     <FormControl fullWidth sx={{ mb: 2 }}>
-                                                        <InputLabel>Durée de réservation</InputLabel>
                                                         <Select
-                                                            value={selectedDuration[locker._id] || 24}
-                                                            label="Durée de réservation"
+                                                            value={selectedDuration[locker._id] || ''}
                                                             onChange={(e) => handleDurationChange(locker._id, e.target.value)}
-                                                            startAdornment={
-                                                                <AccessTimeIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                                                            }
+                                                            displayEmpty
                                                         >
-                                                            <MenuItem value={1}>1 heure</MenuItem>
-                                                            <MenuItem value={6}>6 heures</MenuItem>
-                                                            <MenuItem value={12}>12 heures</MenuItem>
-                                                            <MenuItem value={24}>1 jour</MenuItem>
-                                                            <MenuItem value={48}>2 jours</MenuItem>
-                                                            <MenuItem value={72}>3 jours</MenuItem>
-                                                            <MenuItem value={168}>1 semaine</MenuItem>
+                                                            <MenuItem value="" disabled>
+                                                                Sélectionner une durée
+                                                            </MenuItem>
+                                                            <MenuItem value={1}>1 jour</MenuItem>
+                                                            <MenuItem value={7}>1 semaine</MenuItem>
+                                                            <MenuItem value={30}>1 mois</MenuItem>
                                                         </Select>
                                                     </FormControl>
-
-                                                    <Box sx={{ mb: 2, p: 2, bgcolor: 'primary.light', borderRadius: 1 }}>
-                                                        <Typography variant="body2" color="white" sx={{ fontWeight: 600 }}>
-                                                            Prix total : {Math.ceil((selectedDuration[locker._id] || 24) / 24 * locker.price * 100) / 100}€
-                                                        </Typography>
-                                                    </Box>
-
                                                     <Button
-                                                        variant="contained"
                                                         fullWidth
+                                                        variant="contained"
+                                                        startIcon={<BookOnlineIcon />}
                                                         onClick={() => handleReservation(locker._id)}
-                                                        disabled={reserving[locker._id]}
-                                                        startIcon={reserving[locker._id] ? null : <BookOnlineIcon />}
+                                                        disabled={!selectedDuration[locker._id] || reserving[locker._id]}
                                                         sx={{
-                                                            py: 1.5,
-                                                            fontWeight: 600,
-                                                            background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
+                                                            background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
                                                             '&:hover': {
-                                                                background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+                                                                background: 'linear-gradient(135deg, #047857 0%, #059669 100%)',
                                                             },
                                                         }}
                                                     >
-                                                        {reserving[locker._id] ? 'Réservation...' : 'Réserver ce casier'}
+                                                        {reserving[locker._id] ? 'Réservation...' : 'Réserver'}
                                                     </Button>
                                                 </Box>
-                                            )}
-
-                                            {locker.status === 'reserved' && (
-                                                <Alert severity="warning" sx={{ mt: 2 }}>
-                                                    Ce casier est actuellement réservé
-                                                </Alert>
                                             )}
                                         </CardContent>
                                     </Card>

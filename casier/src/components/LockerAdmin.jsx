@@ -25,8 +25,7 @@ import {
     Fade,
     Zoom,
     Skeleton,
-    InputAdornment,
-    Slider
+    InputAdornment
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -37,8 +36,6 @@ import {
     Business as BusinessIcon,
     Storage as StorageIcon,
     Euro as EuroIcon,
-    FilterList as FilterIcon,
-    Search as SearchIcon,
     Close as CloseIcon,
     FileDownload as FileDownloadIcon,
     Clear as ClearIcon
@@ -49,21 +46,30 @@ import {
     getStatusColor,
     getStatusText,
     getSizeText,
-    getPartnerTypeText,
-    applyLockerFilters
+    getPartnerTypeText
 } from '../utils/lockerHelpers.jsx';
+import { useLockerFilters } from '../hooks/useLockerFilters.js';
+import LockerFilters from './LockerFilters.jsx';
 
 const LockerAdmin = () => {
     const [lockers, setLockers] = useState([]);
-    const [filteredLockers, setFilteredLockers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editingLocker, setEditingLocker] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [cityFilter, setCityFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
-    const [priceFilter, setPriceFilter] = useState([0, 50]); // [min, max]
+
+    const {
+        searchTerm,
+        setSearchTerm,
+        cityFilter,
+        setCityFilter,
+        statusFilter,
+        setStatusFilter,
+        priceFilter,
+        setPriceFilter,
+        filteredLockers,
+        resetFilters
+    } = useLockerFilters(lockers);
 
     const [createForm, setCreateForm] = useState({
         number: '',
@@ -93,34 +99,18 @@ const LockerAdmin = () => {
         fetchLockers();
     }, []);
 
-    useEffect(() => {
-        applyFilters();
-    }, [lockers, searchTerm, cityFilter, statusFilter, priceFilter]);
-
     const fetchLockers = async () => {
         try {
             setLoading(true);
             const response = await api.get('/lockers');
             const lockersData = response.data.data || response.data || [];
             setLockers(lockersData);
-            setFilteredLockers(lockersData);
         } catch (error) {
             console.error('Erreur lors du chargement des casiers:', error);
             toast.error('Erreur lors du chargement des casiers');
         } finally {
             setLoading(false);
         }
-    };
-
-    const applyFilters = () => {
-        const filters = {
-            searchTerm,
-            cityFilter,
-            statusFilter,
-            priceFilter
-        };
-        const filtered = applyLockerFilters(lockers, filters);
-        setFilteredLockers(filtered);
     };
 
     const handleCreateChange = (field, value) => {
@@ -265,10 +255,7 @@ const LockerAdmin = () => {
     };
 
     const handleResetFilters = () => {
-        setSearchTerm('');
-        setCityFilter('');
-        setStatusFilter('');
-        setPriceFilter([0, 50]);
+        resetFilters();
         toast.success('Filtres réinitialisés !');
     };
 
@@ -359,92 +346,36 @@ const LockerAdmin = () => {
                         </Box>
             </Box>
 
-                    <Paper sx={{ p: 3, mb: 4, background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <FilterIcon sx={{ mr: 1, color: 'primary.main' }} />
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                Filtres
-                            </Typography>
-                        </Box>
-                        <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} sm={3}>
-                                <TextField
-                                    fullWidth
-                                    label="Rechercher par numéro"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={3}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Ville</InputLabel>
-                                    <Select
-                                        value={cityFilter}
-                                        onChange={(e) => setCityFilter(e.target.value)}
-                                        label="Ville"
-                                    >
-                                        <MenuItem value="">Toutes les villes</MenuItem>
-                                        <MenuItem value="Lyon">Lyon</MenuItem>
-                                        <MenuItem value="Villeurbanne">Villeurbanne</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={3}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Statut</InputLabel>
-                                    <Select
-                                        value={statusFilter}
-                                        onChange={(e) => setStatusFilter(e.target.value)}
-                                        label="Statut"
-                                    >
-                                        <MenuItem value="">Tous les statuts</MenuItem>
-                                        <MenuItem value="available">Disponible</MenuItem>
-                                        <MenuItem value="reserved">Réservé</MenuItem>
-                                        <MenuItem value="occupied">Occupé</MenuItem>
-                                        <MenuItem value="maintenance">Maintenance</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={3}>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                                        Prix : {priceFilter[0]}€ - {priceFilter[1]}€
-                                    </Typography>
-                                    <Slider
-                                        value={priceFilter}
-                                        onChange={(event, newValue) => setPriceFilter(newValue)}
-                                        valueLabelDisplay="auto"
-                                        min={0}
-                                        max={50}
-                                        step={1}
-                                        marks={[
-                                            { value: 0, label: '0€' },
-                                            { value: 25, label: '25€' },
-                                            { value: 50, label: '50€' }
-                                        ]}
-                                        sx={{
-                                            '& .MuiSlider-thumb': {
-                                                backgroundColor: '#059669',
-                                            },
-                                            '& .MuiSlider-track': {
-                                                backgroundColor: '#059669',
-                                            },
-                                            '& .MuiSlider-rail': {
-                                                backgroundColor: '#e5e7eb',
-                                            },
-                                        }}
-                                    />
-                                </Box>
-                            </Grid>
-                        </Grid>
-                    </Paper>
+                    <LockerFilters
+                        filters={{
+                            searchTerm,
+                            cityFilter,
+                            statusFilter,
+                            priceFilter
+                        }}
+                        onFilterChange={(field, value) => {
+                            switch (field) {
+                                case 'searchTerm':
+                                    setSearchTerm(value);
+                                    break;
+                                case 'cityFilter':
+                                    setCityFilter(value);
+                                    break;
+                                case 'statusFilter':
+                                    setStatusFilter(value);
+                                    break;
+                                case 'priceFilter':
+                                    setPriceFilter(value);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }}
+                        filterOptions={{
+                            cities: ['Lyon', 'Villeurbanne'],
+                            statuses: ['available', 'reserved', 'occupied', 'maintenance']
+                        }}
+                    />
 
                     <Grid container spacing={3}>
                         {filteredLockers.map(locker => (
