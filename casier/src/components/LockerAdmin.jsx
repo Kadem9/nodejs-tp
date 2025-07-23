@@ -25,7 +25,8 @@ import {
     Fade,
     Zoom,
     Skeleton,
-    InputAdornment
+    InputAdornment,
+    Slider
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -39,7 +40,8 @@ import {
     FilterList as FilterIcon,
     Search as SearchIcon,
     Close as CloseIcon,
-    FileDownload as FileDownloadIcon
+    FileDownload as FileDownloadIcon,
+    Clear as ClearIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -54,6 +56,7 @@ const LockerAdmin = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [cityFilter, setCityFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [priceFilter, setPriceFilter] = useState([0, 50]); // [min, max]
 
     const [createForm, setCreateForm] = useState({
         number: '',
@@ -85,7 +88,7 @@ const LockerAdmin = () => {
 
     useEffect(() => {
         applyFilters();
-    }, [lockers, searchTerm, cityFilter, statusFilter]);
+    }, [lockers, searchTerm, cityFilter, statusFilter, priceFilter]);
 
     const fetchLockers = async () => {
         try {
@@ -120,6 +123,10 @@ const LockerAdmin = () => {
         if (statusFilter) {
             filtered = filtered.filter(locker => locker.status === statusFilter);
         }
+
+        filtered = filtered.filter(locker =>
+            locker.price >= priceFilter[0] && locker.price <= priceFilter[1]
+        );
 
         setFilteredLockers(filtered);
     };
@@ -302,6 +309,14 @@ const LockerAdmin = () => {
         }
     };
 
+    const handleResetFilters = () => {
+        setSearchTerm('');
+        setCityFilter('');
+        setStatusFilter('');
+        setPriceFilter([0, 50]);
+        toast.success('Filtres réinitialisés !');
+    };
+
     if (loading) {
         return (
             <Container sx={{ mt: 5 }}>
@@ -360,6 +375,20 @@ const LockerAdmin = () => {
                                 Export CSV
                             </Button>
                             <Button
+                                variant="outlined"
+                                startIcon={<ClearIcon />}
+                                onClick={handleResetFilters}
+                                sx={{
+                                    borderColor: '#dc2626',
+                                    color: '#dc2626',
+                                    '&:hover': {
+                                        borderColor: '#b91c1c',
+                                        backgroundColor: 'rgba(220, 38, 38, 0.04)',
+                                    },
+                                }}>
+                                Réinitialiser
+                            </Button>
+                            <Button
                                 variant="contained"
                                 startIcon={<AddIcon />}
                                 onClick={() => setCreateDialogOpen(true)}
@@ -383,7 +412,7 @@ const LockerAdmin = () => {
                             </Typography>
                         </Box>
                         <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} sm={4}>
+                            <Grid item xs={12} sm={3}>
                                 <TextField
                                     fullWidth
                                     label="Rechercher par numéro"
@@ -398,7 +427,7 @@ const LockerAdmin = () => {
                                     }}
                                 />
                             </Grid>
-                            <Grid item xs={12} sm={4}>
+                            <Grid item xs={12} sm={3}>
                                 <FormControl fullWidth>
                                     <InputLabel>Ville</InputLabel>
                                     <Select
@@ -412,7 +441,7 @@ const LockerAdmin = () => {
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={12} sm={4}>
+                            <Grid item xs={12} sm={3}>
                                 <FormControl fullWidth>
                                     <InputLabel>Statut</InputLabel>
                                     <Select
@@ -427,6 +456,37 @@ const LockerAdmin = () => {
                                         <MenuItem value="maintenance">Maintenance</MenuItem>
                                     </Select>
                                 </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={3}>
+                                <Box>
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                                        Prix : {priceFilter[0]}€ - {priceFilter[1]}€
+                                    </Typography>
+                                    <Slider
+                                        value={priceFilter}
+                                        onChange={(event, newValue) => setPriceFilter(newValue)}
+                                        valueLabelDisplay="auto"
+                                        min={0}
+                                        max={50}
+                                        step={1}
+                                        marks={[
+                                            { value: 0, label: '0€' },
+                                            { value: 25, label: '25€' },
+                                            { value: 50, label: '50€' }
+                                        ]}
+                                        sx={{
+                                            '& .MuiSlider-thumb': {
+                                                backgroundColor: '#059669',
+                                            },
+                                            '& .MuiSlider-track': {
+                                                backgroundColor: '#059669',
+                                            },
+                                            '& .MuiSlider-rail': {
+                                                backgroundColor: '#e5e7eb',
+                                            },
+                                        }}
+                                    />
+                                </Box>
                             </Grid>
                         </Grid>
                     </Paper>
