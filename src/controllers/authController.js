@@ -1,17 +1,8 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-
-const transporter = nodemailer.createTransport({
-  host: 'sandbox.smtp.mailtrap.io',
-  port: 2525,
-  auth: {
-      user: process.env.MAILTRAP_USER,
-      pass: process.env.MAILTRAP_PASS
-  }
-});
+const emailService = require('../services/emailService');
 
 const generateToken = (user) => {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -20,8 +11,6 @@ const generateToken = (user) => {
 // gestion des inscriptions
 exports.register = async (req, res) => {
   try {
-      console.log('Données reçues pour inscription :', req.body);
-
       const { name, email, password } = req.body;
 
       const existingUser = await User.findOne({ email });
@@ -78,7 +67,7 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    console.log('getProfile appelé avec user:', req.user);
+    console.log('debuguser:', req.user);
     
     const user = await User.findById(req.user.id).select('-password');
     
@@ -114,19 +103,7 @@ exports.forgotPassword = async (req, res) => {
 
       const resetUrl = `http://localhost:5173/reset-password/${token}`; // frontend
 
-      const mailOptions = {
-          to: user.email,
-          from: 'noreply@reservation-casiers.com',
-          subject: 'Réinitialisation de mot de passe',
-          html: `
-              <p>Salut ${user.name},</p>
-              <p>Tu as demandé une réinitialisation de mot de passe.</p>
-              <p>Clique ici pour le faire : <a href="${resetUrl}">${resetUrl}</a></p>
-              <p>Ce lien expire dans 1 heure.</p>
-          `
-      };
-
-      await transporter.sendMail(mailOptions);
+      await emailService.sendPasswordReset(user, resetUrl);
 
       res.json({ message: "E-mail envoyé avec le lien de réinitialisation" });
 
