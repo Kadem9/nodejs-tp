@@ -146,9 +146,6 @@ class ExportService {
                 header: true
             });
 
-            // génération du CSV
-            const csv = csvParser.parse(formattedData);
-
             // on génère le nom de fichier avec timestamp
             const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
             const filename = `reservations_${timestamp}.csv`;
