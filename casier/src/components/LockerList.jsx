@@ -20,7 +20,8 @@ import {
     TextField,
     InputAdornment,
     Paper,
-    Divider
+    Divider,
+    Slider
 } from '@mui/material';
 import { 
     Storage as StorageIcon,
@@ -32,7 +33,8 @@ import {
     Refresh as RefreshIcon,
     Search as SearchIcon,
     LocationOn as LocationIcon,
-    FilterList as FilterIcon
+    FilterList as FilterIcon,
+    Clear as ClearIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -46,6 +48,7 @@ const LockerList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sizeFilter, setSizeFilter] = useState('');
     const [cityFilter, setCityFilter] = useState('');
+    const [priceFilter, setPriceFilter] = useState([0, 50]); // [min, max]
 
     useEffect(() => {
         fetchLockers();
@@ -53,7 +56,7 @@ const LockerList = () => {
 
     useEffect(() => {
         applyFilters();
-    }, [lockers, searchTerm, sizeFilter, cityFilter]);
+    }, [lockers, searchTerm, sizeFilter, cityFilter, priceFilter]);
 
     const fetchLockers = async () => {
         try {
@@ -88,6 +91,10 @@ const LockerList = () => {
                 locker.address?.city === cityFilter
             );
         }
+
+        filtered = filtered.filter(locker =>
+            locker.price >= priceFilter[0] && locker.price <= priceFilter[1]
+        );
 
         setFilteredLockers(filtered);
     };
@@ -146,6 +153,14 @@ const LockerList = () => {
         return filteredLockers.filter(locker => locker.status === 'available').length;
     };
 
+    const handleResetFilters = () => {
+        setSearchTerm('');
+        setSizeFilter('');
+        setCityFilter('');
+        setPriceFilter([0, 50]);
+        toast.success('Filtres réinitialisés !');
+    };
+
     if (loading) {
         return (
             <Container sx={{ mt: 5 }}>
@@ -175,20 +190,35 @@ const LockerList = () => {
                                 {getAvailableCount()} casiers disponibles sur {filteredLockers.length} au total
                             </Typography>
                         </Box>
-                        <IconButton 
-                            onClick={fetchLockers}
-                            sx={{
-                                background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
-                                color: 'white',
-                                '&:hover': {
-                                    background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
-                                    transform: 'rotate(180deg)',
-                                },
-                                transition: 'all 0.3s ease',
-                            }}
-                        >
-                            <RefreshIcon />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                            <IconButton 
+                                onClick={handleResetFilters}
+                                sx={{
+                                    background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+                                    color: 'white',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 100%)',
+                                    },
+                                    transition: 'all 0.3s ease',
+                                }}
+                            >
+                                <ClearIcon />
+                            </IconButton>
+                            <IconButton 
+                                onClick={fetchLockers}
+                                sx={{
+                                    background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
+                                    color: 'white',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+                                        transform: 'rotate(180deg)',
+                                    },
+                                    transition: 'all 0.3s ease',
+                                }}
+                            >
+                                <RefreshIcon />
+                            </IconButton>
+                        </Box>
                     </Box>
 
                     {/* Filtres */}
@@ -200,7 +230,7 @@ const LockerList = () => {
                             </Typography>
                         </Box>
                         <Grid container spacing={2}>
-                            <Grid item xs={12} sm={4}>
+                            <Grid item xs={12} sm={3}>
                                 <TextField
                                     fullWidth
                                     placeholder="Rechercher par numéro..."
@@ -215,7 +245,7 @@ const LockerList = () => {
                                     }}
                                 />
                             </Grid>
-                            <Grid item xs={12} sm={4}>
+                            <Grid item xs={12} sm={3}>
                                 <FormControl fullWidth>
                                     <InputLabel>Taille</InputLabel>
                                     <Select
@@ -230,7 +260,7 @@ const LockerList = () => {
                                     </Select>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={12} sm={4}>
+                            <Grid item xs={12} sm={3}>
                                 <FormControl fullWidth>
                                     <InputLabel>Ville</InputLabel>
                                     <Select
@@ -243,6 +273,37 @@ const LockerList = () => {
                                         <MenuItem value="Villeurbanne">Villeurbanne</MenuItem>
                                     </Select>
                                 </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={3}>
+                                <Box>
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                                        Prix : {priceFilter[0]}€ - {priceFilter[1]}€
+                                    </Typography>
+                                    <Slider
+                                        value={priceFilter}
+                                        onChange={(event, newValue) => setPriceFilter(newValue)}
+                                        valueLabelDisplay="auto"
+                                        min={0}
+                                        max={50}
+                                        step={1}
+                                        marks={[
+                                            { value: 0, label: '0€' },
+                                            { value: 25, label: '25€' },
+                                            { value: 50, label: '50€' }
+                                        ]}
+                                        sx={{
+                                            '& .MuiSlider-thumb': {
+                                                backgroundColor: '#6366f1',
+                                            },
+                                            '& .MuiSlider-track': {
+                                                backgroundColor: '#6366f1',
+                                            },
+                                            '& .MuiSlider-rail': {
+                                                backgroundColor: '#e5e7eb',
+                                            },
+                                        }}
+                                    />
+                                </Box>
                             </Grid>
                         </Grid>
                     </Paper>
