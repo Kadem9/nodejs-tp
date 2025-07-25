@@ -94,6 +94,12 @@ const PaymentForm = ({ reservation, onPaymentSuccess, onPaymentError }) => {
   };
 
   const formatDuration = (duration) => {
+    if (!duration || isNaN(duration)) return '—';
+    
+    if (duration >= 1 && duration <= 7) {
+      return `${duration}j`;
+    }
+    
     if (duration < 24) return `${duration}h`;
     const days = Math.floor(duration / 24);
     const hours = duration % 24;
@@ -144,7 +150,7 @@ const PaymentForm = ({ reservation, onPaymentSuccess, onPaymentError }) => {
             }
             label={
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                🧪 Mode test (simulation de paiement)
+                Mode test (simulation de paiement)
               </Typography>
             }
           />
@@ -179,7 +185,7 @@ const PaymentForm = ({ reservation, onPaymentSuccess, onPaymentError }) => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
             <Typography variant="body2">Prix unitaire</Typography>
             <Typography variant="body2">
-              {reservation.locker?.price ? formatPrice(reservation.locker.price) : '3'}€/jour
+              {reservation.locker?.price ? formatPrice(reservation.locker.price) : '3'}/jour
             </Typography>
           </Box>
           
@@ -220,7 +226,7 @@ const PaymentForm = ({ reservation, onPaymentSuccess, onPaymentError }) => {
         {!testMode && (
           <Paper sx={{ p: 2, mb: 3, bgcolor: 'info.light' }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
-              💳 Paiement sécurisé
+              Paiement sécurisé
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Vous serez redirigé vers la page de paiement sécurisée de Stripe pour effectuer votre paiement.
@@ -260,7 +266,7 @@ const PaymentForm = ({ reservation, onPaymentSuccess, onPaymentError }) => {
         {/* Informations de sécurité */}
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Typography variant="caption" color="text.secondary">
-            🔒 Paiement sécurisé par Stripe
+            Paiement sécurisé par Stripe
           </Typography>
         </Box>
       </CardContent>

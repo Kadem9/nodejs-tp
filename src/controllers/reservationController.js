@@ -23,7 +23,7 @@ exports.bookLocker = async (req, res) => {
       const { locker } = validation;
 
       const pricePerDay = locker.price;
-      const days = duration / 24;
+      const days = duration >= 1 && duration <= 7 ? duration : duration / 24;
       const totalPrice = Math.ceil(days * pricePerDay * 100) / 100;
 
       const reservation = await Reservation.create({

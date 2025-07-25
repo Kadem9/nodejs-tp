@@ -63,7 +63,7 @@ exports.createPayment = async (req, res) => {
             currency: 'eur',
             product_data: {
               name: `Casier #${reservation.locker.number}`,
-              description: `Réservation pour ${reservation.duration} heures`,
+              description: `Réservation pour ${reservation.duration >= 1 && reservation.duration <= 7 ? reservation.duration + ' jour(s)' : reservation.duration + ' heure(s)'}`,
             },
             unit_amount: Math.round(reservation.totalPrice * 100),
           },
@@ -340,6 +340,14 @@ exports.verifyPayment = async (req, res) => {
           locker.status = 'reserved';
           await locker.save();
         }
+
+        // mail de confirmation
+        try {
+          const user = await User.findById(userId);
+          await emailService.sendPaymentConfirmed(user, reservation, locker);
+        } catch (emailError) {
+          console.error('erreur email confirmation paiement:', emailError);
+        }
       }
 
       res.json({
@@ -349,6 +357,7 @@ exports.verifyPayment = async (req, res) => {
           _id: reservation._id,
           paymentStatus: reservation.paymentStatus,
           totalPrice: reservation.totalPrice,
+          duration: reservation.duration,
           startTime: reservation.startTime,
           endTime: reservation.endTime,
           locker: {

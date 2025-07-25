@@ -32,7 +32,7 @@ const emailTemplates = {
                         <p><strong>Adresse :</strong> ${address}</p>
                         <p><strong>Date de début :</strong> ${startDate}</p>
                         <p><strong>Date de fin :</strong> ${endDate}</p>
-                        <p><strong>Durée :</strong> ${reservation.duration} heures</p>
+                        <p><strong>Durée :</strong> ${reservation.duration >= 1 && reservation.duration <= 7 ? reservation.duration + ' jour(s)' : reservation.duration + ' heure(s)'}</p>
                         <p><strong>Montant :</strong> ${reservation.totalPrice}€</p>
                     </div>
                     
@@ -71,7 +71,7 @@ const emailTemplates = {
                         <p><strong>Adresse :</strong> ${address}</p>
                         <p><strong>Date de début :</strong> ${startDate}</p>
                         <p><strong>Date de fin :</strong> ${endDate}</p>
-                        <p><strong>Durée :</strong> ${reservation.duration} heures</p>
+                        <p><strong>Durée :</strong> ${reservation.duration >= 1 && reservation.duration <= 7 ? reservation.duration + ' jour(s)' : reservation.duration + ' heure(s)'}</p>
                         <p><strong>Montant payé :</strong> ${reservation.totalPrice}€</p>
                     </div>
                     

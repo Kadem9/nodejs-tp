@@ -58,7 +58,8 @@ const ReservationSchema = new mongoose.Schema({
 });
 
 ReservationSchema.pre('save', async function (next) {
-  this.endTime = new Date(this.startTime.getTime() + this.duration * 60 * 60 * 1000);
+  const durationInHours = this.duration >= 1 && this.duration <= 7 ? this.duration * 24 : this.duration;
+  this.endTime = new Date(this.startTime.getTime() + durationInHours * 60 * 60 * 1000);
   
   if (!this.totalPrice) {
     let pricePerDay = 3;
@@ -67,7 +68,7 @@ ReservationSchema.pre('save', async function (next) {
       const locker = await Locker.findById(this.locker);
       if (locker && locker.price) pricePerDay = locker.price;
     } catch (e) {}
-    const days = this.duration / 24;
+    const days = this.duration >= 1 && this.duration <= 7 ? this.duration : this.duration / 24;
     this.totalPrice = Math.ceil(days * pricePerDay * 100) / 100;
   }
   this.updatedAt = new Date();

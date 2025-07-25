@@ -185,7 +185,7 @@ const HomePage = () => {
     try {
       const response = await api.post('/reservations', {
         lockerId: locker._id,
-        duration: reservationDuration
+        duration: Number(reservationDuration)
       });
       
       setSnackbar({
@@ -713,7 +713,9 @@ const HomePage = () => {
                     <FormControl fullWidth sx={{ mb: 2 }}>
                       <Select
                         value={reservationDuration}
-                        onChange={(e) => setReservationDuration(e.target.value)}
+                        onChange={(e) => {
+                          setReservationDuration(Number(e.target.value));
+                        }}
                         size="small"
                       >
                         <MenuItem value={1}>1 heure</MenuItem>

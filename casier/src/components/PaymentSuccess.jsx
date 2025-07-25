@@ -43,7 +43,7 @@ const PaymentSuccess = () => {
         
         if (response.data.success) {
           setReservation(response.data.reservation);
-          toast.success('Paiement confirmé avec succès ! 🎉');
+          toast.success('Paiement confirmé avec succès !');
         } else {
           setError(response.data.message);
         }
@@ -67,6 +67,11 @@ const PaymentSuccess = () => {
 
   const formatDuration = (duration) => {
     if (!duration || isNaN(duration)) return '—';
+    
+    if (duration >= 1 && duration <= 7) {
+      return `${duration} jour(s)`;
+    }
+    
     if (duration < 24) return `${duration}h`;
     const days = Math.floor(duration / 24);
     const hours = duration % 24;
@@ -143,6 +148,19 @@ const PaymentSuccess = () => {
               <Typography variant="body1">Adresse</Typography>
               <Typography variant="body1">
                 {reservation.locker.address.street}, {reservation.locker.address.city}
+              </Typography>
+            </Box>
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="body1">Expire le</Typography>
+              <Typography variant="body1" fontWeight="bold" color="warning.main">
+                {new Date(reservation.endTime).toLocaleString('fr-FR', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               </Typography>
             </Box>
             

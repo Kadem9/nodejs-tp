@@ -73,9 +73,16 @@ const ReservationList = () => {
     };
 
     const formatDuration = (duration) => {
-        if (duration < 24) return `${duration}h`;
-        const days = Math.floor(duration / 24);
-        const hours = duration % 24;
+        const numDuration = Number(duration);
+        if (isNaN(numDuration)) return '—';
+        
+        if (numDuration >= 1 && numDuration <= 7) {
+            return `${numDuration}j`;
+        }
+        
+        if (numDuration < 24) return `${numDuration}h`;
+        const days = Math.floor(numDuration / 24);
+        const hours = numDuration % 24;
         return hours > 0 ? `${days}j ${hours}h` : `${days}j`;
     };
 
@@ -180,7 +187,7 @@ const ReservationList = () => {
                                         startIcon={<Delete />}
                                         onClick={() => handleCancelReservation(reservation._id)}
                                         fullWidth
-                                        disabled={new Date(reservation.endTime) < new Date() || reservation.status === 'pending'}
+                                        disabled={new Date(reservation.endTime) < new Date()}
                                     >
                                         Annuler
                                     </Button>

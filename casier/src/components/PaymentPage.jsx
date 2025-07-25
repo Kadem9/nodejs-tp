@@ -200,7 +200,8 @@ const PaymentPage = () => {
                 Durée
               </Typography>
               <Typography variant="body1">
-                {reservation.duration < 24 ? `${reservation.duration}h` :
+                {reservation.duration >= 1 && reservation.duration <= 7 ? `${reservation.duration} jour(s)` :
+                 reservation.duration < 24 ? `${reservation.duration}h` :
                  reservation.duration === 24 ? '1 jour' :
                  `${Math.floor(reservation.duration / 24)} jours`}
               </Typography>
